@@ -1,0 +1,200 @@
+[
+    {
+     "Description": "GitHub Personal Access Token",
+     "StartLine": 50,
+     "EndLine": 50,
+     "StartColumn": 150,
+     "EndColumn": 189,
+     "Match": "ghp_A5COGOVYUGnhYWILWawMfjpAAeeVeC5no94V",
+     "Secret": "ghp_A5COGOVYUGnhYWILWawMfjpAAeeVeC5no94V",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 4.5153117,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "pat-key",
+      "github",
+      "version-control"
+     ],
+     "RuleID": "github-pat"
+    },
+    {
+     "Description": "GitHub Personal Access Token",
+     "StartLine": 59,
+     "EndLine": 59,
+     "StartColumn": 147,
+     "EndColumn": 186,
+     "Match": "ghp_A5COGOVYUGnhYWILWawMfjpAAeeVeC5no94V",
+     "Secret": "ghp_A5COGOVYUGnhYWILWawMfjpAAeeVeC5no94V",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 4.5153117,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "pat-key",
+      "github",
+      "version-control"
+     ],
+     "RuleID": "github-pat"
+    },
+    {
+     "Description": "GitHub Personal Access Token",
+     "StartLine": 59,
+     "EndLine": 59,
+     "StartColumn": 224,
+     "EndColumn": 263,
+     "Match": "ghp_8zrErw6PvpPWaoPepQLN19sXLeAOSH06Zx1M",
+     "Secret": "ghp_8zrErw6PvpPWaoPepQLN19sXLeAOSH06Zx1M",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 4.8341837,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "pat-key",
+      "github",
+      "version-control"
+     ],
+     "RuleID": "github-pat"
+    },
+    {
+     "Description": "GitHub Personal Access Token",
+     "StartLine": 63,
+     "EndLine": 63,
+     "StartColumn": 37,
+     "EndColumn": 76,
+     "Match": "ghp_8zrErw6PvpPWaoPepQLN19sXLeAOSH06Zx1M",
+     "Secret": "ghp_8zrErw6PvpPWaoPepQLN19sXLeAOSH06Zx1M",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 4.8341837,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "pat-key",
+      "github",
+      "version-control"
+     ],
+     "RuleID": "github-pat"
+    },
+    {
+     "Description": "AirBrake API",
+     "StartLine": 98,
+     "EndLine": 98,
+     "StartColumn": 13,
+     "EndColumn": 62,
+     "Match": "\"AIRBRAKE_KEY: 'cae7f5949eaf243d0cccfa1329f092d8'\"",
+     "Secret": "\"AIRBRAKE_KEY: 'cae7f5949eaf243d0cccfa1329f092d8'\"",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 4.533661,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "api-key",
+      "airbrake",
+      "app monitor"
+     ],
+     "RuleID": "airbrake-api"
+    },
+    {
+     "Description": "AirBrake API",
+     "StartLine": 99,
+     "EndLine": 99,
+     "StartColumn": 14,
+     "EndColumn": 63,
+     "Match": "\"AIRBRAKE_KEY: 'cae7f5949eaf243d0cccfa1329f092d8'\"",
+     "Secret": "\"AIRBRAKE_KEY: 'cae7f5949eaf243d0cccfa1329f092d8'\"",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 4.533661,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "api-key",
+      "airbrake",
+      "app monitor"
+     ],
+     "RuleID": "airbrake-api"
+    },
+    {
+     "Description": "AirBrake project key",
+     "StartLine": 120,
+     "EndLine": 120,
+     "StartColumn": 13,
+     "EndColumn": 33,
+     "Match": "\"AIRBRAKE_ID: 179755\"",
+     "Secret": "\"AIRBRAKE_ID: 179755\"",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 3.8208888,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "project-id",
+      "airbrake",
+      "app monitor"
+     ],
+     "RuleID": "airbrake-project-key"
+    },
+    {
+     "Description": "AirBrake project key",
+     "StartLine": 121,
+     "EndLine": 121,
+     "StartColumn": 14,
+     "EndColumn": 34,
+     "Match": "\"AIRBRAKE_ID: 179755\"",
+     "Secret": "\"AIRBRAKE_ID: 179755\"",
+     "File": "apps/third_eye/lazy_gitleaks/README.md",
+     "Commit": "",
+     "Entropy": 3.8208888,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "project-id",
+      "airbrake",
+      "app monitor"
+     ],
+     "RuleID": "airbrake-project-key"
+    },
+    {
+     "Description": "GitHub Personal Access Token",
+     "StartLine": 71,
+     "EndLine": 71,
+     "StartColumn": 171,
+     "EndColumn": 210,
+     "Match": "ghp_A5COGOVYUGnhYWILWawMfjpAAeeVeC5no94V",
+     "Secret": "ghp_A5COGOVYUGnhYWILWawMfjpAAeeVeC5no94V",
+     "File": "apps/third_eye/lazy_gitleaks/run.py",
+     "Commit": "",
+     "Entropy": 4.5153117,
+     "Author": "",
+     "Email": "",
+     "Date": "",
+     "Message": "",
+     "Tags": [
+      "pat-key",
+      "github",
+      "version-control"
+     ],
+     "RuleID": "github-pat"
+    }
+   ]
