@@ -34,8 +34,8 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [ ] alibaba-access-key-id
 - [ ] alibaba-secret-key
 - [ ] asana-client-id
-- [ ] asana-client-secret
-- [ ] atlassian-api-token
+- [X] asana-client-secret
+- [X] atlassian-api-token
 - [ ] authress-service-client-access-key
 - [X] aws-access-token
 - [ ] beamer-api-token
@@ -46,10 +46,10 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [ ] clojars-api-token
 - [ ] codecov-access-token
 - [ ] coinbase-access-token
-- [ ] confluent-access-token
-- [ ] confluent-secret-key
+- [X] confluent-access-token
+- [X] confluent-secret-key
 - [ ] contentful-delivery-api-token
-- [ ] databricks-api-token
+- [X] databricks-api-token
 - [ ] datadog-access-token
 - [ ] defined-networking-api-token
 - [ ] digitalocean-access-token
@@ -57,14 +57,14 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [ ] digitalocean-refresh-token
 - [ ] discord-api-token
 - [ ] discord-client-id
-- [ ] discord-client-secret
+- [X] discord-client-secret
 - [ ] doppler-api-token
 - [X] droneci-access-token
 - [ ] dropbox-api-token
 - [ ] dropbox-long-lived-api-token
 - [ ] dropbox-short-lived-api-token
 - [ ] duffel-api-token
-- [ ] dynatrace-api-token
+- [X] dynatrace-api-token
 - [X] easypost-api-token
 - [X] easypost-test-api-token
 - [ ] etsy-access-token
@@ -124,33 +124,33 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [ ] mattermost-access-token
 - [ ] messagebird-api-token
 - [ ] messagebird-client-id
-- [ ] microsoft-teams-webhook
-- [ ] netlify-access-token
-- [ ] new-relic-browser-api-token
+- [X] microsoft-teams-webhook
+- [X] netlify-access-token
+- [X] new-relic-browser-api-token
 - [ ] new-relic-user-api-id
-- [ ] new-relic-user-api-key
-- [ ] npm-access-token
+- [X] new-relic-user-api-key
+- [X] npm-access-token
 - [ ] nytimes-access-token
 - [ ] okta-access-token
-- [ ] openai-api-key
+- [X] openai-api-key
 - [ ] plaid-api-token
 - [ ] plaid-client-id
 - [ ] plaid-secret-key
 - [ ] planetscale-api-token
 - [ ] planetscale-oauth-token
 - [ ] planetscale-password
-- [ ] postman-api-token
+- [X] postman-api-token
 - [ ] prefect-api-token
 - [ ] private-key
 - [ ] pulumi-api-token
-- [ ] pypi-upload-token
+- [X] pypi-upload-token
 - [ ] rapidapi-access-token
 - [ ] readme-api-token
 - [ ] rubygems-api-token
 - [ ] scalingo-api-token
 - [ ] sendbird-access-id
 - [ ] sendbird-access-token
-- [ ] sendgrid-api-token
+- [X] sendgrid-api-token
 - [ ] sendinblue-api-token
 - [ ] sentry-access-token
 - [ ] shippo-api-token
@@ -160,13 +160,13 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [ ] shopify-shared-secret
 - [ ] sidekiq-secret
 - [ ] sidekiq-sensitive-url
-- [ ] slack-app-token
-- [ ] slack-bot-token
-- [ ] slack-config-access-token
-- [ ] slack-config-refresh-token
-- [ ] slack-legacy-bot-token
-- [ ] slack-legacy-token
-- [ ] slack-legacy-workspace-token
+- [X] slack-app-token
+- [X] slack-bot-token
+- [X] slack-config-access-token
+- [X] slack-config-refresh-token
+- [X] slack-legacy-bot-token
+- [X] slack-legacy-token
+- [X] slack-legacy-workspace-token
 - [X] slack-user-token
 - [ ] slack-webhook-url
 - [ ] snyk-api-token
@@ -178,15 +178,15 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [ ] telegram-bot-api-token
 - [ ] travisci-access-token
 - [ ] twilio-api-key
-- [ ] twitch-api-token
-- [ ] twitter-access-secret
-- [ ] twitter-access-token
+- [X] twitch-api-token
+- [X] twitter-access-secret
+- [X] twitter-access-token
 - [ ] twitter-api-key
 - [ ] twitter-api-secret
-- [ ] twitter-bearer-token
+- [X] twitter-bearer-token
 - [ ] typeform-api-token
-- [ ] vault-batch-token
-- [ ] vault-service-token
+- [X] vault-batch-token
+- [X] vault-service-token
 - [X] yandex-access-token
 - [X] yandex-api-key
 - [X] yandex-aws-access-token
