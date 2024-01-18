@@ -18,4 +18,4 @@ class Secret:
         self.tags = tags
         self.rule_id = rule_id
         self.fingerprint = fingerprint
-        self.valid = False
+        self.valid = None

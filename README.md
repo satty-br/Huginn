@@ -168,15 +168,15 @@ If valid is false, it means that the secret can be an invalid credential or a fa
 - [X] slack-legacy-token
 - [X] slack-legacy-workspace-token
 - [X] slack-user-token
-- [ ] slack-webhook-url
+- [X] slack-webhook-url
 - [ ] snyk-api-token
 - [ ] square-access-token
 - [ ] squarespace-access-token
-- [ ] stripe-access-token
+- [X] stripe-access-token
 - [ ] sumologic-access-id
 - [ ] sumologic-access-token
-- [ ] telegram-bot-api-token
-- [ ] travisci-access-token
+- [X] telegram-bot-api-token
+- [X] travisci-access-token
 - [ ] twilio-api-key
 - [X] twitch-api-token
 - [X] twitter-access-secret

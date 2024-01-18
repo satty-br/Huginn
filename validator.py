@@ -57,6 +57,7 @@ class Validator:
             "slack-legacy-bot-token": self.slack_api_token,
             "slack-legacy-token": self.slack_api_token,
             "slack-legacy-workspace-token": self.slack_api_token,
+            "slack-webhook-url": self.slack_webhook_url,
             "openai-api-key": self.openai_api_key,
             "asana-client-secret": self.asana,
             "atlassian-api-token": self.atlassian_api_token,
@@ -80,9 +81,17 @@ class Validator:
             "databricks-api-token": self.databricks_api_token,
             "vault-batch-token": self.vault_bash_token,
             "vault-service-token": self.vault_bash_token,
+            "stripe-access-token": self.stripe_acess_token,
+            "travisci-access-token": self.travisci_acess_token,
+            "telegram-bot-api-token": self.telegram_bot_api_token,
+            
 
         }
-        return function_map[secret.rule_id](secret)
+        return function_map.get(secret.rule_id,self.returnNone)(secret)
+
+    # if not tested return None
+    def returnNone(self,secret: Secret):
+        return None
 
     def zendesk(self, secret: Secret):
             match = self.file_search(secret, r'https?://[a-z0-9.-]*zendesk.com[a-z0-9./-]*')
@@ -275,21 +284,19 @@ class Validator:
                 if current_line != '\n':
                     previous_line = current_line
         return None, None
-    
+
+    def is_response_successful(response):
+        return response.status_code < 401
+        
     def slack_webhook_url(self,secret: Secret):
         response = requests.post(secret.secret, json={"text": "yamete kudasai!"})
         return self.is_response_successful(response)
-
 
     def openai_api_key(self,secret: Secret):
         url = f"https://api.openai.com/v1/engines"
         headers = {"Authorization": f"Bearer {secret.secret}"}
         response = requests.get(f"{url}/artifactory/api/system/ping", headers=headers)
         return self.is_response_successful(response)
-
-    def is_response_successful(response):
-        return response.status_code < 401
-    
 
     def asana(self, secret: Secret):
         match = self.file_search(secret, r'https?://[a-z0-9.-]*asana[a-z0-9./-]*')
@@ -323,7 +330,6 @@ class Validator:
         response = requests.get(url, headers=headers)
         return self.is_response_successful(response)
 
-
     def sendgrid_api_token(self,secret: Secret):
         url = "https://api.sendgrid.com/v3/marketing/contacts"
         headers = {"Authorization": f"Bearer {secret.secret}"}
@@ -336,7 +342,6 @@ class Validator:
         response = requests.get(url, headers=headers)
         return self.is_response_successful(response)
     
-
     def pypi_upload_token(self,secret: Secret):
         url = "https://upload.pypi.org/legacy/"
         headers = {"Authorization": f"Basic {secret.secret}"}
@@ -379,7 +384,6 @@ class Validator:
         response = requests.get(url, headers=headers)
         return self.is_response_successful(response)
 
-
     def netlify_access_token(self,secret: Secret):
         url = "https://api.netlify.com/api/v1/sites"
         headers = {"Authorization": f"Bearer {secret.secret}"}
@@ -408,3 +412,20 @@ class Validator:
         response = requests.get(f"{url}/v1/auth/token/lookup-self", headers=headers)
         return self.is_response_successful(response)
        
+    def stripe_acess_token(self,secret: Secret):
+        url = "https://api.stripe.com/v1/charges"
+        auth = (secret.secret, '')
+        response = requests.get(url, auth=auth)
+        return self.is_response_successful(response)
+
+    def travisci_acess_token(self,secret: Secret):
+        url = "https://api.travis-ci.com/user"
+        headers = {"Authorization": f"token {secret.secret}"}
+        response = requests.get(url, headers=headers)
+        return self.is_response_successful(response)
+
+    def telegram_bot_api_token(self, secret: Secret):
+        url = f"https://api.telegram.org/bot{secret.secret}/getMe"
+        response = requests.get(url)
+        return self.is_response_successful(response)
+    
