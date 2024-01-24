@@ -1,4 +1,7 @@
-# Hugin
+# Huginn
+
+![huginn logo](https://github.com/satty-br/huginn/blob/main/huginn.png?raw=true)
+
 ### Hugin is a project that validates the secrets found by gitleaks, a tool that detects leaked credentials in git repositories.
 
 
