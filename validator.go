@@ -2,11 +2,16 @@
 package huginn
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
+	"time"
 )
 
 // Secret represents a secret found in a file.
@@ -35,6 +40,7 @@ type Secret struct {
 // Validator is used to validate secrets.
 type Validator struct {
 	Project string
+	Secrets []Secret
 }
 
 // UTILS FUNCTIONS
@@ -114,6 +120,51 @@ func (v *Validator) getparsed(scheme string, host string) string {
 
 func (v *Validator) IsResponseSuccessful(response *http.Response) bool {
 	return response.StatusCode < 401
+}
+func (v *Validator) FindGitlabLink(secret Secret) string {
+	match := v.FileSearch(secret, `https?://[a-z0-9.-]*(git\.|gitlab\.)[a-z0-9./-]*`)
+	gitlabUrl := "https://gitlab.com"
+	if match != "" {
+		parsedURL, _ := url.Parse(match)
+		gitlabUrl = v.getparsed(parsedURL.Scheme, parsedURL.Host)
+	}
+	return gitlabUrl
+}
+
+func (v *Validator) FindVaultLink(secret Secret) string {
+	urlVault := "https://vault"
+	match := v.FileSearch(secret, `https?://[a-z0-9.-]*vault.[a-z0-9./-]*`)
+	if match != "" {
+		parsedURL, _ := url.Parse(match)
+		urlVault = v.getparsed(parsedURL.Scheme, parsedURL.Host)
+	}
+	return urlVault
+}
+
+func (v *Validator) hash(data []byte) []byte {
+	hash := sha256.Sum256(data)
+	return hash[:]
+}
+
+func (v *Validator) hmacSHA256(key, data []byte) []byte {
+	h := hmac.New(sha256.New, key)
+	h.Write(data)
+	return h.Sum(nil)
+}
+
+func (v *Validator) canonicalRequest(req *http.Request) string {
+	var canonicalHeaders []string
+	for key, values := range req.Header {
+		canonicalHeaders = append(canonicalHeaders, strings.ToLower(key)+":"+strings.Join(values, ","))
+	}
+	return strings.Join([]string{
+		req.Method,
+		req.URL.Path,
+		req.URL.RawQuery,
+		strings.Join(canonicalHeaders, "\n") + "\n",
+		"content-type;host;x-amz-date",
+		hex.EncodeToString(v.hash([]byte(""))),
+	}, "\n")
 }
 
 //END OF UTILS FUNCTIONS
@@ -223,36 +274,21 @@ func (v *Validator) GithubAppToken(secret Secret) bool {
 }
 
 func (v *Validator) GitlabAPIToken(secret Secret) bool {
-	match := v.FileSearch(secret, `https?://[a-z0-9.-]*(git\.|gitlab\.)[a-z0-9./-]*`)
-	gitlabUrl := "https://gitlab.com"
-	if match != "" {
-		parsedURL, _ := url.Parse(match)
-		gitlabUrl = v.getparsed(parsedURL.Scheme, parsedURL.Host)
-	}
+	gitlabUrl := v.FindGitlabLink(secret)
 	gitlabUrl = fmt.Sprintf("%s/api/v4/projects?private_token=%s", gitlabUrl, secret.Secret)
 	response := v.Get(gitlabUrl, nil)
 	return v.IsResponseSuccessful(response)
 }
 
 func (v *Validator) GitLabPipelineToken(secret Secret) bool {
-	match := v.FileSearch(secret, `https?://[a-z0-9.-]*(git\.|gitlab\.)[a-z0-9./-]*`)
-	gitlabUrl := "https://gitlab.com"
-	if match != "" {
-		parsedURL, _ := url.Parse(match)
-		gitlabUrl = v.getparsed(parsedURL.Scheme, parsedURL.Host)
-	}
+	gitlabUrl := v.FindGitlabLink(secret)
 	gitlabUrl = fmt.Sprintf("%s/api/v4/projects/1/trigger/pipeline", gitlabUrl)
 	response := v.Post(gitlabUrl, map[string]string{"pRIVATE-TOKEn": secret.Secret})
 	return v.IsResponseSuccessful(response)
 }
 
 func (v *Validator) GitLabRunnerToken(secret Secret) bool {
-	match := v.FileSearch(secret, `https?://[a-z0-9.-]*(git\.|gitlab\.)[a-z0-9./-]*`)
-	gitlabUrl := "https://gitlab.com"
-	if match != "" {
-		parsedURL, _ := url.Parse(match)
-		gitlabUrl = v.getparsed(parsedURL.Scheme, parsedURL.Host)
-	}
+	gitlabUrl := v.FindGitlabLink(secret)
 	gitlabUrl = fmt.Sprintf("%s/api/v4/runners/all?scope=online", gitlabUrl)
 	response := v.Post(gitlabUrl, map[string]string{"pRIVATE-TOKEn": secret.Secret})
 	return v.IsResponseSuccessful(response)
@@ -326,12 +362,7 @@ func (v *Validator) GrafanaCloudAPIKey(secret Secret) bool {
 }
 
 func (v *Validator) HashicorpVaultToken(secret Secret) bool {
-	urlVault := "https://vault"
-	match := v.FileSearch(secret, `https?://[a-z0-9.-]*vault.[a-z0-9./-]*`)
-	if match != "" {
-		parsedURL, _ := url.Parse(match)
-		urlVault = v.getparsed(parsedURL.Scheme, parsedURL.Host)
-	}
+	urlVault := v.FindVaultLink(secret)
 	headers := map[string]string{
 		"X-Vault-Token": fmt.Sprintf("%s", secret.Secret),
 	}
@@ -340,12 +371,7 @@ func (v *Validator) HashicorpVaultToken(secret Secret) bool {
 }
 
 func (v *Validator) HashicorpVaultPassword(secret Secret) bool {
-	urlVault := "https://vault"
-	match := v.FileSearch(secret, `https?://[a-z0-9.-]*vault.[a-z0-9./-]*`)
-	if match != "" {
-		parsedURL, _ := url.Parse(match)
-		urlVault = v.getparsed(parsedURL.Scheme, parsedURL.Host)
-	}
+	urlVault := v.FindVaultLink(secret)
 	sampleUsernames := []string{"sqladmin", "vaultadmin", "vault", "admin"}
 	for _, user := range sampleUsernames {
 		response := v.Post(fmt.Sprintf("%s/v1/auth/ldap/login/%s", urlVault, user), map[string]string{"password": secret.Secret})
@@ -354,6 +380,15 @@ func (v *Validator) HashicorpVaultPassword(secret Secret) bool {
 		}
 	}
 	return false
+}
+
+func (v *Validator) VaultBashToken(secret Secret) bool {
+	urlVault := v.FindVaultLink(secret)
+	headers := map[string]string{
+		"X-Vault-Token": fmt.Sprintf("%s", secret.Secret),
+	}
+	response := v.Get(fmt.Sprintf("%s/v1/auth/token/lookup-self", urlVault), headers)
+	return v.IsResponseSuccessful(response)
 }
 
 func (v *Validator) HerokuAPIKey(secret Secret) bool {
@@ -394,54 +429,68 @@ func (v *Validator) AWSTokenTest(secret Secret) bool {
 	if region == "" {
 		return false
 	}
-	key := v.FindAWSKeyAndSurroundingLines(secret.File, secret.Secret)
-	if key == "" {
+	keys := v.FindAWSKeyInFile(secret.File)
+	if len(keys) > 0 {
 		return false
 	}
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://sts.amazonaws.com/", nil)
-	if err != nil {
-		return false
+	valid := false
+	for _, key := range keys {
+		client := &http.Client{}
+		req, err := http.NewRequest("GET", "https://sts.amazonaws.com/", nil)
+		if err != nil {
+			//like a ninja
+		}
+
+		t := time.Now().UTC()
+		amzDate := t.Format("20060102T150405Z")
+		dateStamp := t.Format("20060102")
+		canonicalRequest := v.canonicalRequest(req)
+		req.Header.Set("Authorization", v.generateAwsAuthorizationHeader(secret.Secret, key, region, amzDate, dateStamp, canonicalRequest))
+
+		req.Header.Set("x-amz-date", amzDate)
+		response, err := client.Do(req)
+		if err != nil {
+			//like a ninja
+		}
+		if v.IsResponseSuccessful(response) {
+			valid = true
+		}
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("AWS4-HMAC-SHA256 Credential=%s/20220101/%s/sts/aws4_request, SignedHeaders=host;x-amz-date, Signature=xxx", secret.Secret, region))
-	req.Header.Set("x-amz-date", "20220101T000000Z")
-	response, err := client.Do(req)
-	if err != nil {
-		return false
-	}
-	return v.IsResponseSuccessful(response)
+	return valid
 }
 
-func (v *Validator) FindAWSKeyAndSurroundingLines(filePath, key string) string {
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		return ""
-	}
-	lines := regexp.MustCompile(`\r?\n`).Split(string(file), -1)
-	var previousLine string
-	for _, currentLine := range lines {
-		if regexp.MustCompile(key).MatchString(currentLine) {
-			var nextLine string
-			for nextLine == "" || nextLine == "\n" {
-				nextLine = lines[0]
-				lines = lines[1:]
-			}
-			matches := regexp.MustCompile(`([a-zA-Z_][a-zA-Z0-9_]*)\s*[:=]\s*[\'"]?([^\'"\n]+)[\'"]?`).FindStringSubmatch(nextLine)
-			if len(matches) > 0 {
-				return matches[1]
-			} else {
-				matches := regexp.MustCompile(`([a-zA-Z_][a-zA-Z0-9_]*)\s*[:=]\s*[\'"]?([^\'"\n]+)[\'"]?`).FindStringSubmatch(previousLine)
-				if len(matches) > 0 {
-					return matches[1]
-				}
-				return ""
-			}
+func (v *Validator) generateAwsAuthorizationHeader(accessKey, secretKey, region, amzDate, dateStamp, canonicalRequest string) string {
+	service := "sts"
+	algorithm := "AWS4-HMAC-SHA256"
+	stringToSign := strings.Join([]string{
+		algorithm,
+		amzDate,
+		strings.Join([]string{dateStamp, region, service, "aws4_request"}, "/"),
+		hex.EncodeToString(v.hash([]byte(canonicalRequest))),
+	}, "\n")
+	kDate := v.hmacSHA256([]byte("AWS4"+secretKey), []byte(dateStamp))
+	kRegion := v.hmacSHA256(kDate, []byte(region))
+	kService := v.hmacSHA256(kRegion, []byte(service))
+	kSigning := v.hmacSHA256(kService, []byte("aws4_request"))
+	return fmt.Sprintf("%s Credential=%s/%s/%s/%s/aws4_request, SignedHeaders=%s, Signature=%s",
+		algorithm,
+		accessKey,
+		dateStamp,
+		region,
+		service,
+		"content-type;host;x-amz-date",
+		hex.EncodeToString(v.hmacSHA256(kSigning, []byte(stringToSign))),
+	)
+}
+
+func (v *Validator) FindAWSKeyInFile(filePath string) []string {
+	ret := []string{}
+	for _, secret := range v.Secrets {
+		if secret.File == filePath && secret.RuleID == "generic-api-key" {
+			ret = append(ret, secret.Secret)
 		}
-		if currentLine != "\n" {
-			previousLine = currentLine
-		}
 	}
-	return ""
+	return ret
 }
 
 func (v *Validator) SlackWebhookURL(secret Secret) bool {
@@ -574,20 +623,6 @@ func (v *Validator) DatabricksAPIToken(secret Secret) bool {
 	url := "https://api.cloud.databricks.com/api/2.0/clusters/list"
 	headers := v.DefaultBearer(secret.Secret)
 	response := v.Get(url, headers)
-	return v.IsResponseSuccessful(response)
-}
-
-func (v *Validator) VaultBashToken(secret Secret) bool {
-	urlVault := "https://vault"
-	match := v.FileSearch(secret, `https?://[a-z0-9.-]*vault.[a-z0-9./-]*`)
-	if match != "" {
-		parsedURL, _ := url.Parse(match)
-		urlVault = v.getparsed(parsedURL.Scheme, parsedURL.Host)
-	}
-	headers := map[string]string{
-		"X-Vault-Token": fmt.Sprintf("%s", secret.Secret),
-	}
-	response := v.Get(fmt.Sprintf("%s/v1/auth/token/lookup-self", urlVault), headers)
 	return v.IsResponseSuccessful(response)
 }
 

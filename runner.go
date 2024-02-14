@@ -20,9 +20,9 @@ func Runner(file string, project string) {
 	var secrets []Secret
 	json.Unmarshal(data, &secrets)
 
-	// Create a new Validator instance.
 	validator := &Validator{
 		Project: project,
+		Secrets: secrets,
 	}
 
 	// Iterate over the secrets and validate each one.
