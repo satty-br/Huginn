@@ -1,4 +1,4 @@
-package huginn
+package main
 
 import (
 	"encoding/json"

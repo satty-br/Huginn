@@ -1,19 +1,17 @@
-package test
+package main
 
 import (
 	"os"
 	"testing"
-
-	huginn "github.com/satty-br/Huginn"
 )
 
 func TestRunner(t *testing.T) {
 
-	jsonPath := "./test.json"
+	jsonPath := "./test/test.json"
 	outputPath := "./"
 
 	// Call the function being tested
-	huginn.Runner(jsonPath, outputPath)
+	Runner(jsonPath, outputPath)
 
 	// Check the output
 	file, err := os.ReadFile("./output.json")

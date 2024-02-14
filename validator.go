@@ -1,5 +1,5 @@
 // File: golang/validator.go
-package huginn
+package main
 
 import (
 	"crypto/hmac"
