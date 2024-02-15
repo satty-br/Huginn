@@ -229,8 +229,8 @@ func (v *Validator) Validate(secret Secret) bool {
 		"confluent-access-token":        v.ConfluentAccessToken,
 		"confluent-secret-key":          v.ConfluentAccessToken,
 		"databricks-api-token":          v.DatabricksAPIToken,
-		"vault-batch-token":             v.VaultBashToken,
-		"vault-service-token":           v.VaultBashToken,
+		"vault-batch-token":             v.HashicorpVaultToken,
+		"vault-service-token":           v.HashicorpVaultToken,
 		"stripe-access-token":           v.StripeAccessToken,
 		"travisci-access-token":         v.TravisCIAccessToken,
 		"telegram-bot-api-token":        v.TelegramBotAPIToken,
@@ -380,15 +380,6 @@ func (v *Validator) HashicorpVaultPassword(secret Secret) bool {
 		}
 	}
 	return false
-}
-
-func (v *Validator) VaultBashToken(secret Secret) bool {
-	urlVault := v.FindVaultLink(secret)
-	headers := map[string]string{
-		"X-Vault-Token": fmt.Sprintf("%s", secret.Secret),
-	}
-	response := v.Get(fmt.Sprintf("%s/v1/auth/token/lookup-self", urlVault), headers)
-	return v.IsResponseSuccessful(response)
 }
 
 func (v *Validator) HerokuAPIKey(secret Secret) bool {
