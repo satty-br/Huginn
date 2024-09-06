@@ -6,7 +6,7 @@ RUN CGO_ENABLED=0 go build -o bin/huginn -ldflags "-X="github.com/satty-br/Hugin
 
 RUN go build -o huginn
 
-FROM alpine:3.19
+FROM alpine:3.20
 
 RUN adduser -D huginn
 COPY --from=builder /go/src/github.com/satty-br/Huginn/bin/* /usr/bin/
