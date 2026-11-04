@@ -42,6 +42,9 @@ func main() {
 		os.Exit(-1)
 	}
 
-	Runner(*file, *project)
+	if err := Runner(*file, *project); err != nil {
+		fmt.Println(color.RedString(err.Error()))
+		os.Exit(-1)
+	}
 	fmt.Println(color.GreenString("Done!"))
 }
