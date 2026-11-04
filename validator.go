@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,6 +14,18 @@ import (
 	"strings"
 	"time"
 )
+
+// closeBody drains and closes a response body immediately. None of the
+// validators in this file read the response body (they only inspect the
+// status code), so every HTTP helper closes it right away instead of
+// leaking the underlying connection until it is garbage collected.
+func closeBody(response *http.Response) {
+	if response == nil || response.Body == nil {
+		return
+	}
+	io.Copy(io.Discard, response.Body)
+	response.Body.Close()
+}
 
 // PostJSON issues a POST request with a JSON body and arbitrary headers.
 // Used by GraphQL-based APIs (Linear, Sourcegraph, Fly.io) that cannot be
@@ -31,6 +44,7 @@ func (v *Validator) PostJSON(url string, headers map[string]string, body string)
 	if err != nil {
 		return nil
 	}
+	closeBody(response)
 	return response
 }
 
@@ -46,6 +60,7 @@ func (v *Validator) PostBasicAuth(url string, username string, password string) 
 	if err != nil {
 		return nil
 	}
+	closeBody(response)
 	return response
 }
 
@@ -61,6 +76,7 @@ func (v *Validator) PostForm(url string, body string) *http.Response {
 	if err != nil {
 		return nil
 	}
+	closeBody(response)
 	return response
 }
 
@@ -77,6 +93,7 @@ func (v *Validator) PostFormBasicAuth(url string, username string, password stri
 	if err != nil {
 		return nil
 	}
+	closeBody(response)
 	return response
 }
 
@@ -150,6 +167,7 @@ func (v *Validator) Post(url string, data map[string]string) *http.Response {
 	if err != nil {
 		return nil
 	}
+	closeBody(response)
 	return response
 }
 
@@ -185,18 +203,23 @@ func (v *Validator) GetAuth(url string, headers map[string]string, username stri
 	if err != nil {
 		return nil
 	}
+	closeBody(response)
 	return response
-}
-
-func (v *Validator) ReturnNone(secret Secret) bool {
-	return false
 }
 
 func (v *Validator) getparsed(scheme string, host string) string {
 	return fmt.Sprintf("%s://%s", scheme, host)
 }
 
+// IsResponseSuccessful reports whether a request should be treated as
+// authenticated successfully. A nil response (returned by the Get/Post
+// helpers above on a network error, timeout or malformed request) is never
+// successful and must not reach response.StatusCode, which would panic on
+// a nil pointer dereference.
 func (v *Validator) IsResponseSuccessful(response *http.Response) bool {
+	if response == nil {
+		return false
+	}
 	return response.StatusCode < 401
 }
 func (v *Validator) FindGitlabLink(secret Secret) string {
@@ -428,7 +451,7 @@ func (v *Validator) Zendesk(secret Secret) bool {
 		url := fmt.Sprintf("%s/api/v2/tickets.json", zendeskURL)
 		headers := v.DefaultBearer(secret.Secret)
 		response := v.Get(url, headers)
-		return response.StatusCode < 401
+		return v.IsResponseSuccessful(response)
 	}
 
 	return false
@@ -460,14 +483,14 @@ func (v *Validator) GitlabAPIToken(secret Secret) bool {
 func (v *Validator) GitLabPipelineToken(secret Secret) bool {
 	gitlabUrl := v.FindGitlabLink(secret)
 	gitlabUrl = fmt.Sprintf("%s/api/v4/projects/1/trigger/pipeline", gitlabUrl)
-	response := v.Post(gitlabUrl, map[string]string{"pRIVATE-TOKEn": secret.Secret})
+	response := v.Post(gitlabUrl, map[string]string{"PRIVATE-TOKEN": secret.Secret})
 	return v.IsResponseSuccessful(response)
 }
 
 func (v *Validator) GitLabRunnerToken(secret Secret) bool {
 	gitlabUrl := v.FindGitlabLink(secret)
 	gitlabUrl = fmt.Sprintf("%s/api/v4/runners/all?scope=online", gitlabUrl)
-	response := v.Post(gitlabUrl, map[string]string{"pRIVATE-TOKEn": secret.Secret})
+	response := v.Post(gitlabUrl, map[string]string{"PRIVATE-TOKEN": secret.Secret})
 	return v.IsResponseSuccessful(response)
 }
 
@@ -552,7 +575,7 @@ func (v *Validator) HashicorpVaultPassword(secret Secret) bool {
 	sampleUsernames := []string{"sqladmin", "vaultadmin", "vault", "admin"}
 	for _, user := range sampleUsernames {
 		response := v.Post(fmt.Sprintf("%s/v1/auth/ldap/login/%s", urlVault, user), map[string]string{"password": secret.Secret})
-		if response.StatusCode < 401 {
+		if v.IsResponseSuccessful(response) {
 			return true
 		}
 	}
@@ -578,27 +601,32 @@ func (v *Validator) JFrogAPIKey(secret Secret) bool {
 	return v.IsResponseSuccessful(response)
 }
 
+// FindAWSRegion looks for an AWS_REGION assignment in the given file. Go's
+// regexp package (RE2) does not support lookbehind assertions, so the
+// region is captured directly instead of asserted with "(?<=...)".
 func (v *Validator) FindAWSRegion(filePath string) string {
 	file, err := os.ReadFile(filePath)
 	if err != nil {
 		return ""
 	}
 	content := string(file)
-	match := regexp.MustCompile(`(?<=AWS_REGIOn=)[\'"]?([a-z]{2}-[a-z]+-\d)[\'"]?`).FindStringSubmatch(content)
-	if len(match) > 0 {
+	match := regexp.MustCompile(`(?i)AWS_REGION\s*=\s*['"]?([a-z]{2}-[a-z]+-\d)['"]?`).FindStringSubmatch(content)
+	if len(match) > 1 {
 		return match[1]
-	} else {
-		return ""
 	}
+	return ""
 }
 
+// AWSTokenTest validates an AWS access key by looking for a paired secret
+// key (reported separately by gitleaks as "generic-api-key" in the same
+// file) and signing a real STS GetCallerIdentity-equivalent request with it.
 func (v *Validator) AWSTokenTest(secret Secret) bool {
 	region := v.FindAWSRegion(secret.File)
 	if region == "" {
 		return false
 	}
 	keys := v.FindAWSKeyInFile(secret.File)
-	if len(keys) > 0 {
+	if len(keys) == 0 {
 		return false
 	}
 	valid := false
@@ -606,7 +634,7 @@ func (v *Validator) AWSTokenTest(secret Secret) bool {
 		client := &http.Client{}
 		req, err := http.NewRequest("GET", "https://sts.amazonaws.com/", nil)
 		if err != nil {
-			//like a ninja
+			continue
 		}
 
 		t := time.Now().UTC()
@@ -618,8 +646,9 @@ func (v *Validator) AWSTokenTest(secret Secret) bool {
 		req.Header.Set("x-amz-date", amzDate)
 		response, err := client.Do(req)
 		if err != nil {
-			//like a ninja
+			continue
 		}
+		closeBody(response)
 		if v.IsResponseSuccessful(response) {
 			valid = true
 		}
@@ -667,9 +696,9 @@ func (v *Validator) SlackWebhookURL(secret Secret) bool {
 }
 
 func (v *Validator) OpenAIAPIKey(secret Secret) bool {
-	url := "https://api.openai.com/v1/engines"
+	url := "https://api.openai.com/v1/models"
 	headers := v.DefaultBearer(secret.Secret)
-	response := v.Get(fmt.Sprintf("%s/artifactory/api/system/ping", url), headers)
+	response := v.Get(url, headers)
 	return v.IsResponseSuccessful(response)
 }
 

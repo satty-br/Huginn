@@ -1,4 +1,10 @@
-package readme
+// Package main regenerates the "## keys" checklist in the project README
+// from updatereadme/rules.toml and validator.go, so the two stay in sync.
+//
+// Run it from inside the updatereadme directory:
+//
+//	cd updatereadme && go run .
+package main
 
 import (
 	"fmt"
@@ -9,8 +15,8 @@ import (
 
 func main() {
 	fileerror := "Error reading file:"
-	// Carregue o arquivo rules.toml
-	text, err := os.ReadFile("../rules.toml")
+	// rules.toml lives alongside this file, inside updatereadme/.
+	text, err := os.ReadFile("rules.toml")
 	if err != nil {
 		fmt.Println(fileerror, err)
 		return
@@ -40,7 +46,7 @@ func main() {
 	}
 
 	parts := strings.SplitN(string(readmeContent), "## keys", 2)
-	newReadmeContent := parts[0] + "## keys\n" + strings.Join(markdownLines, "\n")
+	newReadmeContent := parts[0] + "## keys\n" + strings.Join(markdownLines, "\n") + "\n"
 	err = os.WriteFile("../README.md", []byte(newReadmeContent), 0644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
